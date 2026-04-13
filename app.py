@@ -1,5 +1,4 @@
-import eventlet
-eventlet.monkey_patch()
+
 import os, json, time, uuid
 from datetime import datetime, timezone
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for, session
@@ -28,7 +27,7 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # ─── MODELS ────────────────────────────────────────────────────────────────────
 
