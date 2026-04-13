@@ -1026,25 +1026,26 @@ def on_forward(data):
             room = f"dm_{min(current_user.id, rid)}_{max(current_user.id, rid)}"
             emit('new_message', msg_data, room=room)
 
+with app.app_context():
+    db.create_all()
+    # Create demo users
+    if not User.query.first():
+        u1 = User(username='alice', phone='+1234567890',
+                  password_hash=bcrypt.generate_password_hash('password').decode('utf-8'),
+                  about='Hey! I am Alice 👋')
+        u2 = User(username='bob', phone='+9876543210',
+                  password_hash=bcrypt.generate_password_hash('password').decode('utf-8'),
+                  about='Bob here! 😊')
+        u3 = User(username='charlie', phone='+1122334455',
+                  password_hash=bcrypt.generate_password_hash('password').decode('utf-8'),
+                  about='Charlie the developer 💻')
+        db.session.add_all([u1, u2, u3])
+        db.session.commit()
+        u1.contacts_rel.append(u2); u1.contacts_rel.append(u3)
+        u2.contacts_rel.append(u1); u3.contacts_rel.append(u1)
+        db.session.commit()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        # Create demo users
-        if not User.query.first():
-            u1 = User(username='alice', phone='+1234567890',
-                      password_hash=bcrypt.generate_password_hash('password').decode('utf-8'),
-                      about='Hey! I am Alice 👋')
-            u2 = User(username='bob', phone='+9876543210',
-                      password_hash=bcrypt.generate_password_hash('password').decode('utf-8'),
-                      about='Bob here! 😊')
-            u3 = User(username='charlie', phone='+1122334455',
-                      password_hash=bcrypt.generate_password_hash('password').decode('utf-8'),
-                      about='Charlie the developer 💻')
-            db.session.add_all([u1, u2, u3])
-            db.session.commit()
-            u1.contacts_rel.append(u2); u1.contacts_rel.append(u3)
-            u2.contacts_rel.append(u1); u3.contacts_rel.append(u1)
-            db.session.commit()
     print("\n✅ WhatsApp Clone is starting...")
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     print("🌐 Open: http://localhost:5000")
