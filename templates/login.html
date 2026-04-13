@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsApp - Login</title>
+<link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--green:#25D366;--dark-green:#075E54;--teal:#128C7E;--light-green:#DCF8C6;--bg:#f0f2f5;--white:#fff;--gray:#667781;--border:#e9edef}
+  body{font-family:'Segoe UI',sans-serif;background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
+  .top-bar{background:var(--dark-green);height:230px;position:absolute;top:0;left:0;right:0}
+  .container{position:relative;z-index:1;margin:60px auto;background:var(--white);width:100%;max-width:420px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.15);overflow:hidden}
+  .logo-wrap{text-align:center;padding:40px 32px 32px;background:var(--white)}
+  .logo-wrap img{width:60px;height:60px}
+  .logo-wrap h1{font-size:22px;color:#111;margin-top:16px;font-weight:400}
+  .tabs{display:flex;border-bottom:2px solid var(--border)}
+  .tab{flex:1;text-align:center;padding:14px;cursor:pointer;font-size:14px;font-weight:600;color:var(--gray);transition:.2s;letter-spacing:.5px;text-transform:uppercase}
+  .tab.active{color:var(--dark-green);border-bottom:3px solid var(--dark-green);margin-bottom:-2px}
+  .form-panel{display:none;padding:32px}
+  .form-panel.active{display:block}
+  .field{margin-bottom:20px}
+  .field label{display:block;font-size:13px;color:var(--gray);margin-bottom:6px;font-weight:500}
+  .field input{width:100%;border:none;border-bottom:2px solid var(--border);padding:8px 0;font-size:15px;outline:none;transition:.2s;background:transparent}
+  .field input:focus{border-color:var(--dark-green)}
+  .btn{width:100%;background:var(--green);color:#fff;border:none;padding:14px;border-radius:24px;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:.3px;transition:.2s;margin-top:8px}
+  .btn:hover{background:var(--teal)}
+  .error{color:#e53935;font-size:13px;text-align:center;margin-top:12px;display:none}
+  .divider{text-align:center;color:var(--gray);font-size:13px;margin:16px 0;position:relative}
+  .divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border)}
+  .divider::before{left:0} .divider::after{right:0}
+  .footer{text-align:center;padding:16px;color:var(--gray);font-size:12px;background:var(--white)}
+  .spinner{display:none;width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;margin:0 auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media(max-width:480px){.container{margin:0;border-radius:0;min-height:100vh}.top-bar{display:none}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<div class="container">
+  <div class="logo-wrap">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
+    <h1>WhatsApp</h1>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('login')">Login</div>
+    <div class="tab" onclick="switchTab('register')">Register</div>
+  </div>
+
+  <div class="form-panel active" id="login-panel">
+    <div class="field">
+      <label>Phone / Email / Username</label>
+      <input type="text" id="login-identifier" placeholder="Enter your phone or email" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password">
+    </div>
+    <button class="btn" onclick="doLogin()">
+      <span id="login-text">Log In</span>
+      <div class="spinner" id="login-spinner"></div>
+    </button>
+    <div class="error" id="login-error"></div>
+  </div>
+
+  <div class="form-panel" id="register-panel">
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="reg-username" placeholder="Choose a username">
+    </div>
+    <div class="field">
+      <label>Phone Number</label>
+      <input type="tel" id="reg-phone" placeholder="+91 98765 43210">
+    </div>
+    <div class="field">
+      <label>Email (optional)</label>
+      <input type="email" id="reg-email" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="reg-password" placeholder="Create a strong password">
+    </div>
+    <button class="btn" onclick="doRegister()">
+      <span id="reg-text">Create Account</span>
+      <div class="spinner" id="reg-spinner"></div>
+    </button>
+    <div class="error" id="reg-error"></div>
+  </div>
+
+  <div class="footer">End-to-end encrypted</div>
+</div>
+
+<script>
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>{el.classList.toggle('active',['login','register'][i]===t)});
+  document.querySelectorAll('.form-panel').forEach((el,i)=>{el.classList.toggle('active',['login-panel','register-panel'][i]===`${t}-panel`)});
+}
+
+async function doLogin(){
+  const id=document.getElementById('login-identifier').value.trim();
+  const pw=document.getElementById('login-password').value;
+  if(!id||!pw){showError('login-error','Please fill all fields');return}
+  setLoading('login',true);
+  try{
+    const r=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:id,password:pw})});
+    const d=await r.json();
+    if(d.success){window.location='/chat'}
+    else{showError('login-error',d.error||'Login failed')}
+  }catch(e){showError('login-error','Network error')}
+  setLoading('login',false);
+}
+
+async function doRegister(){
+  const un=document.getElementById('reg-username').value.trim();
+  const ph=document.getElementById('reg-phone').value.trim();
+  const em=document.getElementById('reg-email').value.trim();
+  const pw=document.getElementById('reg-password').value;
+  if(!un||!ph||!pw){showError('reg-error','Please fill all required fields');return}
+  setLoading('reg',true);
+  try{
+    const r=await fetch('/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:un,phone:ph,email:em,password:pw})});
+    const d=await r.json();
+    if(d.success){window.location='/chat'}
+    else{showError('reg-error',d.error||'Registration failed')}
+  }catch(e){showError('reg-error','Network error')}
+  setLoading('reg',false);
+}
+
+function showError(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',4000)}
+function setLoading(pre,on){
+  document.getElementById(`${pre}-text`).style.display=on?'none':'inline';
+  document.getElementById(`${pre}-spinner`).style.display=on?'block':'none';
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter')e.target.closest('.form-panel.active').querySelector('.btn').click()});
+</script>
+</body>
+</html>

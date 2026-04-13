@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsApp</title>
+<link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/chat.css">
+<link rel="stylesheet" href="/static/css/calls.css">
+</head>
+<body class="theme-light">
+
+<!-- ========== MAIN APP ========== -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+      <div class="my-avatar-wrap" onclick="openMyProfile()">
+        <img class="my-avatar" id="my-avatar" src="" alt="Me" onerror="this.src='/static/img/default-avatar.png'">
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" title="Status" onclick="switchTab('status')"><svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg></button>
+        <button class="icon-btn" title="New Chat" onclick="openNewChat()"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" fill="currentColor"/></svg></button>
+        <button class="icon-btn" title="More options" onclick="toggleSidebarMenu()">
+          <svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
+        </button>
+        <div class="dropdown-menu" id="sidebar-menu">
+          <div class="dropdown-item" onclick="openNewGroup()">New Group</div>
+          <div class="dropdown-item" onclick="openStarred()">Starred Messages</div>
+          <div class="dropdown-item" onclick="openSettings()">Settings</div>
+          <div class="dropdown-item" onclick="logout()">Log out</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" width="17" height="17" class="search-icon"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/></svg>
+        <input type="text" id="search-input" placeholder="Search or start new chat" oninput="filterChats(this.value)">
+        <button class="clear-btn" id="search-clear" onclick="clearSearch()" style="display:none">✕</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="sidebar-tabs">
+      <div class="sidebar-tab active" id="tab-chats" onclick="switchTab('chats')">Chats</div>
+      <div class="sidebar-tab" id="tab-status" onclick="switchTab('status')">Status</div>
+      <div class="sidebar-tab" id="tab-calls" onclick="switchTab('calls')">Calls</div>
+    </div>
+
+    <!-- Chat List -->
+    <div class="chat-list" id="chat-list-panel">
+      <div class="loading-chats" id="chats-loading">Loading chats...</div>
+    </div>
+
+    <!-- Status Panel -->
+    <div class="status-panel hidden" id="status-panel">
+      <div class="status-my-section">
+        <div class="status-add-btn" onclick="openAddStatus()">
+          <div class="status-add-icon">+</div>
+          <div>
+            <div class="status-add-title">My Status</div>
+            <div class="status-add-sub">Add to my status</div>
+          </div>
+        </div>
+      </div>
+      <div id="my-statuses-list"></div>
+      <div class="status-recent-label">Recent updates</div>
+      <div id="contact-statuses-list"></div>
+    </div>
+
+    <!-- Calls Panel -->
+    <div class="calls-panel hidden" id="calls-panel">
+      <div class="calls-header-bar">
+        <span>Recent</span>
+        <button class="icon-btn" onclick="openNewCall()"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z" fill="currentColor"/></svg></button>
+      </div>
+      <div id="calls-list"></div>
+    </div>
+  </div>
+
+  <!-- MAIN CHAT AREA -->
+  <div class="chat-main" id="chat-main">
+    <!-- Welcome screen -->
+    <div class="welcome-screen" id="welcome-screen">
+      <div class="welcome-content">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="200" alt="WhatsApp">
+        <h2>WhatsApp Web</h2>
+        <p>Send and receive messages without keeping your phone online.</p>
+        <p style="margin-top:8px;font-size:13px;color:#8696a0">🔒 Your personal messages are end-to-end encrypted</p>
+      </div>
+    </div>
+
+    <!-- Active Chat -->
+    <div class="chat-window hidden" id="chat-window">
+      <!-- Chat Header -->
+      <div class="chat-header">
+        <button class="back-btn icon-btn" onclick="closeChat()">←</button>
+        <div class="chat-header-info" onclick="openChatInfo()">
+          <img class="chat-avatar" id="chat-avatar" src="" alt="" onerror="this.src='/static/img/default-avatar.png'">
+          <div>
+            <div class="chat-name" id="chat-name"></div>
+            <div class="chat-status" id="chat-status"></div>
+          </div>
+        </div>
+        <div class="chat-header-actions">
+          <button class="icon-btn call-header-btn" title="Video Call" onclick="startVideoCall()" id="header-video-btn">
+            <svg viewBox="0 0 24 24" width="22" height="22"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" fill="currentColor"/></svg>
+          </button>
+          <button class="icon-btn call-header-btn" title="Voice Call" onclick="startVoiceCall()" id="header-voice-btn">
+            <svg viewBox="0 0 24 24" width="22" height="22"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.27-.27.67-.36 1-.24 1.1.4 2.3.6 3.6.6.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02L6.6 10.8z" fill="currentColor"/></svg>
+          </button>
+          <button class="icon-btn" title="Search" onclick="toggleChatSearch()"><svg viewBox="0 0 24 24" width="23" height="23"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/></svg></button>
+          <button class="icon-btn" onclick="toggleChatMenu()">⋮</button>
+          <div class="dropdown-menu" id="chat-menu">
+            <div class="dropdown-item" onclick="openChatInfo()">Contact info</div>
+            <div class="dropdown-item" onclick="selectMessages()">Select messages</div>
+            <div class="dropdown-item" onclick="muteChat()">Mute notifications</div>
+            <div class="dropdown-item" onclick="clearChatHistory()">Clear messages</div>
+            <div class="dropdown-item" onclick="deleteChat()">Delete chat</div>
+            <div class="dropdown-item" onclick="blockUser()">Block</div>
+            <div class="dropdown-item" onclick="reportUser()">Report</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- In-chat Search -->
+      <div class="in-chat-search hidden" id="in-chat-search">
+        <input type="text" placeholder="Search messages..." oninput="searchChatMessages(this.value)">
+        <span id="search-count"></span>
+        <button onclick="prevSearchResult()">▲</button>
+        <button onclick="nextSearchResult()">▼</button>
+        <button onclick="closeChatSearch()">✕</button>
+      </div>
+
+      <!-- Pinned Message -->
+      <div class="pinned-message hidden" id="pinned-msg-bar">
+        <div class="pin-icon">📌</div>
+        <div class="pin-content">
+          <div class="pin-label">Pinned Message</div>
+          <div class="pin-text" id="pin-text"></div>
+        </div>
+        <button onclick="scrollToPinned()">↓</button>
+        <button onclick="removePinnedBar()">✕</button>
+      </div>
+
+      <!-- Messages Area -->
+      <div class="messages-area" id="messages-area" onscroll="onMessagesScroll()">
+        <div id="load-more-btn" class="load-more hidden">
+          <button onclick="loadMoreMessages()">Load older messages</button>
+        </div>
+        <div id="messages-container"></div>
+        <div class="typing-indicator hidden" id="typing-indicator">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <!-- Reply Preview -->
+      <div class="reply-preview hidden" id="reply-preview">
+        <div class="reply-bar"></div>
+        <div class="reply-info">
+          <div class="reply-sender" id="reply-sender"></div>
+          <div class="reply-text" id="reply-text"></div>
+        </div>
+        <button onclick="cancelReply()">✕</button>
+      </div>
+
+      <!-- Message Input -->
+      <div class="input-area">
+        <div class="input-extras">
+          <button class="icon-btn emoji-btn" onclick="toggleEmojiPicker()" title="Emoji">😊</button>
+          <button class="icon-btn" onclick="openAttachment()" title="Attach">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z" fill="currentColor"/></svg>
+          </button>
+        </div>
+        <div class="input-box" id="input-box" contenteditable="true" 
+          data-placeholder="Type a message"
+          onkeydown="onInputKeyDown(event)"
+          oninput="onTyping()"></div>
+        <div class="send-area">
+          <button class="icon-btn mic-btn" id="mic-btn" onclick="toggleVoiceRecord()" title="Voice message">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" fill="currentColor"/></svg>
+          </button>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()" style="display:none">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Emoji Picker -->
+      <div class="emoji-picker hidden" id="emoji-picker"></div>
+
+      <!-- Attachment Menu -->
+      <div class="attachment-menu hidden" id="attachment-menu">
+        <label class="attach-item" style="--c:#7c4dff">
+          <input type="file" accept="image/*,video/*" onchange="handleFileUpload(event,'media')" hidden>
+          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="white"/></svg>
+          <span>Photos & Videos</span>
+        </label>
+        <label class="attach-item" style="--c:#0288d1">
+          <input type="file" onchange="handleFileUpload(event,'doc')" hidden>
+          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z" fill="white"/></svg>
+          <span>Document</span>
+        </label>
+        <div class="attach-item" style="--c:#43a047" onclick="shareLocation()">
+          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="white"/></svg>
+          <span>Location</span>
+        </div>
+        <label class="attach-item" style="--c:#f4511e">
+          <input type="file" accept="audio/*" onchange="handleFileUpload(event,'audio')" hidden>
+          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z" fill="white"/></svg>
+          <span>Audio</span>
+        </label>
+        <div class="attach-item" style="--c:#00897b" onclick="openContactShare()">
+          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M20 0H4v2h16V0zM4 24h16v-2H4v2zM20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 2.75c1.24 0 2.25 1.01 2.25 2.25S13.24 11.25 12 11.25 9.75 10.24 9.75 9 10.76 6.75 12 6.75zM17 17H7v-1.5c0-1.67 3.33-2.5 5-2.5s5 .83 5 2.5V17z" fill="white"/></svg>
+          <span>Contact</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODALS ========== -->
+
+<!-- Profile Panel -->
+<div class="modal-overlay hidden" id="profile-modal">
+  <div class="side-panel" id="profile-panel">
+    <div class="panel-header">
+      <button onclick="closeModal('profile-modal')">←</button>
+      <span>Profile</span>
+    </div>
+    <div class="profile-content">
+      <div class="profile-avatar-wrap" onclick="triggerAvatarUpload()">
+        <img id="profile-avatar" src="" alt="" onerror="this.src='/static/img/default-avatar.png'">
+        <div class="avatar-edit-overlay">✏️</div>
+        <input type="file" id="avatar-file-input" accept="image/*" onchange="uploadAvatar(event)" hidden>
+      </div>
+      <div class="profile-field">
+        <label>Username</label>
+        <div class="editable-field">
+          <span id="profile-username"></span>
+          <button onclick="editField('username')">✏️</button>
+        </div>
+      </div>
+      <div class="profile-field">
+        <label>About</label>
+        <div class="editable-field">
+          <span id="profile-about"></span>
+          <button onclick="editField('about')">✏️</button>
+        </div>
+      </div>
+      <div class="profile-field">
+        <label>Phone</label>
+        <div class="editable-field"><span id="profile-phone"></span></div>
+      </div>
+      <div class="profile-field">
+        <label>Email</label>
+        <div class="editable-field">
+          <span id="profile-email"></span>
+          <button onclick="editField('email')">✏️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contact Info Panel -->
+<div class="modal-overlay hidden" id="contact-info-modal">
+  <div class="side-panel">
+    <div class="panel-header">
+      <button onclick="closeModal('contact-info-modal')">←</button>
+      <span id="contact-info-title">Contact Info</span>
+    </div>
+    <div class="profile-content">
+      <div class="profile-avatar-wrap no-edit">
+        <img id="contact-info-avatar" src="" alt="" onerror="this.src='/static/img/default-avatar.png'">
+      </div>
+      <div style="text-align:center;padding:16px">
+        <div id="contact-info-name" style="font-size:20px;font-weight:500"></div>
+        <div id="contact-info-about" style="color:#667781;margin-top:4px;font-size:14px"></div>
+        <div id="contact-info-phone" style="color:#667781;font-size:13px;margin-top:2px"></div>
+      </div>
+      <div class="contact-actions">
+        <button onclick="startCall('voice')" class="contact-action-btn">
+          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.27-.27.67-.36 1-.24 1.1.4 2.3.6 3.6.6.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02L6.6 10.8z" fill="currentColor"/></svg>
+          Voice Call
+        </button>
+        <button onclick="startCall('video')" class="contact-action-btn">
+          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" fill="currentColor"/></svg>
+          Video Call
+        </button>
+      </div>
+      <div class="contact-info-section">
+        <div class="section-label">About</div>
+        <div id="contact-about-text"></div>
+      </div>
+      <div class="contact-info-section">
+        <button class="danger-btn" onclick="blockUserFromInfo()">Block Contact</button>
+        <button class="danger-btn" style="margin-top:8px" onclick="reportUserFromInfo()">Report Contact</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Chat Modal -->
+<div class="modal-overlay hidden" id="new-chat-modal">
+  <div class="side-panel">
+    <div class="panel-header">
+      <button onclick="closeModal('new-chat-modal')">←</button>
+      <span>New Chat</span>
+    </div>
+    <div style="padding:12px 16px">
+      <div class="search-box">
+        <input type="text" placeholder="Search contacts or phone..." oninput="searchForUser(this.value)" id="new-chat-search">
+      </div>
+    </div>
+    <div class="new-group-row" onclick="openNewGroup()">
+      <div class="new-group-icon">👥</div>
+      <span>New Group</span>
+    </div>
+    <div id="user-search-results"></div>
+  </div>
+</div>
+
+<!-- New Group Modal -->
+<div class="modal-overlay hidden" id="new-group-modal">
+  <div class="side-panel">
+    <div class="panel-header">
+      <button onclick="closeModal('new-group-modal')">←</button>
+      <span>New Group</span>
+    </div>
+    <div class="group-create-form" id="group-step-1">
+      <div class="search-box" style="margin:12px 16px">
+        <input type="text" placeholder="Add participants..." oninput="searchForGroupUser(this.value)" id="group-user-search">
+      </div>
+      <div id="selected-members" class="selected-members"></div>
+      <div id="group-user-results"></div>
+      <button class="fab-next" onclick="goGroupStep2()">→</button>
+    </div>
+    <div class="group-create-form hidden" id="group-step-2">
+      <div class="group-avatar-upload" onclick="document.getElementById('group-avatar-input').click()">
+        <div id="group-avatar-preview" class="group-avatar-preview">📷</div>
+        <input type="file" id="group-avatar-input" accept="image/*" hidden>
+      </div>
+      <input type="text" id="group-name-input" class="group-name-input" placeholder="Group name">
+      <input type="text" id="group-desc-input" class="group-name-input" placeholder="Group description (optional)">
+      <button class="fab-next" onclick="createGroup()">✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay hidden" id="settings-modal">
+  <div class="side-panel wide">
+    <div class="panel-header">
+      <button onclick="closeModal('settings-modal')">←</button>
+      <span>Settings</span>
+    </div>
+    <div class="settings-list">
+      <div class="settings-item" onclick="openMyProfile()">
+        <div class="settings-icon">👤</div>
+        <div><div class="settings-title">Profile</div><div class="settings-sub" id="settings-profile-sub"></div></div>
+      </div>
+      <div class="settings-item" onclick="toggleTheme()">
+        <div class="settings-icon">🎨</div>
+        <div><div class="settings-title">Theme</div><div class="settings-sub" id="settings-theme-sub">Light</div></div>
+      </div>
+      <div class="settings-item" onclick="openPrivacySettings()">
+        <div class="settings-icon">🔒</div>
+        <div><div class="settings-title">Privacy</div><div class="settings-sub">Last seen, Read receipts</div></div>
+      </div>
+      <div class="settings-item" onclick="openNotifSettings()">
+        <div class="settings-icon">🔔</div>
+        <div><div class="settings-title">Notifications</div><div class="settings-sub">Messages, Groups</div></div>
+      </div>
+      <div class="settings-item" onclick="openChangePassword()">
+        <div class="settings-icon">🔑</div>
+        <div><div class="settings-title">Change Password</div></div>
+      </div>
+      <div class="settings-item" onclick="openBlockedList()">
+        <div class="settings-icon">🚫</div>
+        <div><div class="settings-title">Blocked Contacts</div></div>
+      </div>
+      <div class="settings-item" onclick="openStarred()">
+        <div class="settings-icon">⭐</div>
+        <div><div class="settings-title">Starred Messages</div></div>
+      </div>
+      <div class="settings-item" onclick="exportChatData()">
+        <div class="settings-icon">📤</div>
+        <div><div class="settings-title">Export Chat</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Privacy Settings -->
+<div class="modal-overlay hidden" id="privacy-modal">
+  <div class="side-panel">
+    <div class="panel-header"><button onclick="closeModal('privacy-modal')">←</button><span>Privacy</span></div>
+    <div class="settings-list">
+      <div class="settings-item">
+        <div><div class="settings-title">Last Seen</div><div class="settings-sub">Who can see when I was last online</div></div>
+        <label class="toggle"><input type="checkbox" id="pref-last-seen" onchange="updatePref('show_last_seen',this.checked)"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="settings-item">
+        <div><div class="settings-title">Profile Photo</div><div class="settings-sub">Who can see my profile photo</div></div>
+        <label class="toggle"><input type="checkbox" id="pref-profile-photo" onchange="updatePref('show_profile_photo',this.checked)"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="settings-item">
+        <div><div class="settings-title">About</div><div class="settings-sub">Who can see my about info</div></div>
+        <label class="toggle"><input type="checkbox" id="pref-about" onchange="updatePref('show_about',this.checked)"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="settings-item">
+        <div><div class="settings-title">Read Receipts</div><div class="settings-sub">Show blue ticks when messages are read</div></div>
+        <label class="toggle"><input type="checkbox" id="pref-read-receipts" onchange="updatePref('read_receipts',this.checked)"><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Starred Messages -->
+<div class="modal-overlay hidden" id="starred-modal">
+  <div class="side-panel">
+    <div class="panel-header"><button onclick="closeModal('starred-modal')">←</button><span>Starred Messages</span></div>
+    <div id="starred-list" style="overflow-y:auto;flex:1"></div>
+  </div>
+</div>
+
+<!-- Status Viewer -->
+<div class="status-viewer hidden" id="status-viewer">
+  <div class="status-viewer-header">
+    <button onclick="closeStatusViewer()">←</button>
+    <img id="sv-avatar" src="" alt="" class="sv-avatar">
+    <div>
+      <div id="sv-name"></div>
+      <div id="sv-time" style="font-size:12px;opacity:.7"></div>
+    </div>
+    <button onclick="deleteCurrentStatus()" id="sv-delete-btn" style="display:none">🗑️</button>
+  </div>
+  <div class="status-progress" id="status-progress"></div>
+  <div class="status-content-area" id="status-content-area"></div>
+  <div class="status-footer">
+    <div class="status-viewers-count" id="sv-viewers" onclick="showStatusViewers()">👁️ <span>0</span> views</div>
+    <button onclick="prevStatus()">‹</button>
+    <button onclick="nextStatus()">›</button>
+  </div>
+</div>
+
+<!-- Add Status Modal -->
+<div class="modal-overlay hidden" id="add-status-modal">
+  <div class="add-status-panel">
+    <div class="panel-header"><button onclick="closeModal('add-status-modal')">←</button><span>Add Status</span></div>
+    <div class="status-type-tabs">
+      <button class="active" onclick="switchStatusType('text',this)">📝 Text</button>
+      <button onclick="switchStatusType('photo',this)">📷 Photo</button>
+    </div>
+    <div id="text-status-form">
+      <div class="text-status-preview" id="text-status-preview" style="background:#075E54">
+        <textarea id="status-text-input" placeholder="Type a status..." oninput="updateStatusPreview()"></textarea>
+      </div>
+      <div class="status-bg-colors">
+        <div class="bg-color" style="background:#075E54" onclick="setStatusBg('#075E54')"></div>
+        <div class="bg-color" style="background:#1565c0" onclick="setStatusBg('#1565c0')"></div>
+        <div class="bg-color" style="background:#6a1b9a" onclick="setStatusBg('#6a1b9a')"></div>
+        <div class="bg-color" style="background:#c62828" onclick="setStatusBg('#c62828')"></div>
+        <div class="bg-color" style="background:#2e7d32" onclick="setStatusBg('#2e7d32')"></div>
+        <div class="bg-color" style="background:#e65100" onclick="setStatusBg('#e65100')"></div>
+        <div class="bg-color" style="background:#37474f" onclick="setStatusBg('#37474f')"></div>
+      </div>
+    </div>
+    <div id="photo-status-form" style="display:none">
+      <label class="photo-upload-area">
+        <input type="file" accept="image/*,video/*" onchange="handleStatusMedia(event)" hidden>
+        <div>Click to upload photo or video</div>
+      </label>
+      <img id="status-media-preview" style="max-width:100%;display:none">
+    </div>
+    <input type="text" id="status-caption" placeholder="Add a caption..." style="width:100%;padding:12px 16px;border:none;border-top:1px solid #e9edef;font-size:15px;outline:none">
+    <button class="btn-send-status" onclick="postStatus()">Post Status</button>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast hidden" id="toast"></div>
+
+<!-- Context Menu -->
+<div class="context-menu hidden" id="context-menu">
+  <div class="ctx-item" onclick="ctx_reply()">Reply</div>
+  <div class="ctx-item" onclick="ctx_react()">React 😊</div>
+  <div class="ctx-item" onclick="ctx_forward()">Forward</div>
+  <div class="ctx-item" onclick="ctx_copy()">Copy</div>
+  <div class="ctx-item" onclick="ctx_star()">Star message</div>
+  <div class="ctx-item" onclick="ctx_pin()">Pin message</div>
+  <div class="ctx-item" onclick="ctx_edit()" id="ctx-edit-btn">Edit</div>
+  <div class="ctx-item" onclick="ctx_info()">Message info</div>
+  <div class="ctx-item danger" onclick="ctx_delete()">Delete</div>
+</div>
+
+<!-- Emoji Reaction Picker -->
+<div class="reaction-picker hidden" id="reaction-picker">
+  <span onclick="reactWithEmoji('👍')">👍</span>
+  <span onclick="reactWithEmoji('❤️')">❤️</span>
+  <span onclick="reactWithEmoji('😂')">😂</span>
+  <span onclick="reactWithEmoji('😮')">😮</span>
+  <span onclick="reactWithEmoji('😢')">😢</span>
+  <span onclick="reactWithEmoji('🙏')">🙏</span>
+</div>
+
+<!-- Forward Modal -->
+<div class="modal-overlay hidden" id="forward-modal">
+  <div class="modal-box">
+    <div class="modal-title">Forward Message To</div>
+    <div id="forward-list"></div>
+    <div style="text-align:right;margin-top:12px">
+      <button onclick="closeModal('forward-modal')">Cancel</button>
+      <button class="btn-primary" onclick="doForward()">Forward</button>
+    </div>
+  </div>
+</div>
+
+<!-- Message Info Modal -->
+<div class="modal-overlay hidden" id="msg-info-modal">
+  <div class="modal-box">
+    <div class="modal-title">Message Info</div>
+    <div id="msg-info-content"></div>
+    <button onclick="closeModal('msg-info-modal')" style="margin-top:12px">Close</button>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay hidden" id="change-pw-modal">
+  <div class="modal-box">
+    <div class="modal-title">Change Password</div>
+    <input type="password" id="curr-pw" placeholder="Current password" class="modal-input">
+    <input type="password" id="new-pw" placeholder="New password" class="modal-input">
+    <input type="password" id="confirm-pw" placeholder="Confirm new password" class="modal-input">
+    <div style="text-align:right;margin-top:12px">
+      <button onclick="closeModal('change-pw-modal')">Cancel</button>
+      <button class="btn-primary" onclick="doChangePassword()">Update</button>
+    </div>
+  </div>
+</div>
+
+<!-- Blocked Users Modal -->
+<div class="modal-overlay hidden" id="blocked-modal">
+  <div class="side-panel">
+    <div class="panel-header"><button onclick="closeModal('blocked-modal')">←</button><span>Blocked Contacts</span></div>
+    <div id="blocked-list"></div>
+  </div>
+</div>
+
+<!-- Voice Recording Indicator -->
+<div class="recording-indicator hidden" id="recording-indicator">
+  <div class="rec-dot"></div>
+  <span id="rec-timer">0:00</span>
+  <button onclick="cancelVoiceRecord()">✕</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+<script src="/static/js/chat.js"></script>
+<script src="/static/js/calls.js"></script>
+</body>
+</html>
